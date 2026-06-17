@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MediBook — Healthcare Appointments</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --t50:#e8f7f1;--t100:#a8dfc7;--t400:#1a9e6f;--t600:#0d6e4d;--t800:#084d36;
+  --b50:#e6f1fb;--b100:#b3d4f5;--b400:#2e86de;--b600:#1a5fa0;--b800:#0c3d6e;
+  --c50:#faeae6;--c100:#f5bfad;--c400:#d4563a;--c600:#963c28;
+  --a50:#faf0da;--a100:#f5cb7a;--a400:#c07a12;--a600:#8a5508;
+  --g50:#edf4e2;--g100:#bfdc93;--g400:#5c9c1a;--g600:#3a6e0e;
+  --p50:#eeecfe;--p100:#cdc9f8;--p400:#7b72d8;--p600:#5048b0;
+  --r50:#fde8e8;--r100:#f5b3b3;--r400:#d93636;--r600:#a01a1a;
+  --gray50:#f5f4f0;--gray100:#dddbd3;--gray200:#b8b6af;--gray400:#86847e;
+  --gray600:#5a5955;--gray700:#3f3e3b;--gray800:#272724;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --sh-sm:0 1px 4px rgba(0,0,0,.06);
+  --sh-md:0 4px 16px rgba(0,0,0,.09);
+  --sh-lg:0 10px 36px rgba(0,0,0,.13);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--gray50);color:var(--gray800);font-size:14px;line-height:1.6;min-height:100vh}
+h1,h2,h3,h4{font-family:var(--fd);line-height:1.2;color:var(--gray800)}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--gray100);border-radius:4px}
+button,input,select,textarea{font-family:var(--fb)}
+textarea{resize:vertical}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+@keyframes toastIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.anim-up{animation:fadeUp .5s ease both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
+
+/* ── Layout ── */
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+.wrap{max-width:1080px;margin:0 auto;padding:0 1.5rem}
+.section{padding:5rem 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+
+/* ── Navbar ── */
+#nav{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:.5px solid var(--gray100);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:1000;transition:box-shadow .3s}
+#nav.scrolled{box-shadow:var(--sh-md)}
+.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.nav-logo-icon{width:36px;height:36px;border-radius:10px;background:var(--t400);display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-logo-text{font-family:var(--fd);font-size:20px;font-weight:700;color:var(--t600)}
+.nav-links{display:flex;gap:28px}
+.nav-link{font-size:13px;font-weight:500;color:var(--gray600);cursor:pointer;padding-bottom:2px;border-bottom:2px solid transparent;transition:color .15s}
+.nav-link:hover,.nav-link.active{color:var(--t600);border-bottom-color:var(--t400)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{width:22px;height:2px;background:var(--gray700);border-radius:2px;transition:.3s}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:var(--r-md);font-weight:500;font-size:13px;border:none;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--t400);color:#fff}.btn-primary:hover{background:var(--t600)}
+.btn-outline{background:transparent;color:var(--t600);border:1.5px solid var(--t400)}.btn-outline:hover{background:var(--t50)}
+.btn-ghost{background:transparent;color:var(--gray600);border:.5px solid var(--gray100)}.btn-ghost:hover{background:var(--gray50)}
+.btn-danger{background:var(--r400);color:#fff}.btn-danger:hover{background:var(--r600)}
+.btn-lg{padding:13px 30px;font-size:15px;border-radius:var(--r-lg)}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--r-sm)}
+.btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);animation:ripple .6s linear;pointer-events:none;transform:scale(0)}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--gray100);box-shadow:var(--sh-sm);padding:1.25rem;transition:box-shadow .2s}
+.card-hover{cursor:pointer;transition:all .2s}
+.card-hover:hover{box-shadow:var(--sh-lg);transform:translateY(-3px)}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:.5px solid transparent}
+.badge-t{background:var(--t50);color:var(--t800);border-color:var(--t100)}
+.badge-b{background:var(--b50);color:var(--b800);border-color:var(--b100)}
+.badge-c{background:var(--c50);color:var(--c600);border-color:var(--c100)}
+.badge-a{background:var(--a50);color:var(--a600);border-color:var(--a100)}
+.badge-g{background:var(--g50);color:var(--g600);border-color:var(--g100)}
+.badge-p{background:var(--p50);color:var(--p600);border-color:var(--p100)}
+.badge-gray{background:var(--gray50);color:var(--gray600);border-color:var(--gray100)}
+.s-Pending{background:var(--a50);color:var(--a600);border:.5px solid var(--a100)}
+.s-Confirmed{background:var(--t50);color:var(--t600);border:.5px solid var(--t100)}
+.s-Completed{background:var(--g50);color:var(--g600);border:.5px solid var(--g100)}
+.s-Cancelled{background:var(--r50);color:var(--r600);border:.5px solid var(--r100)}
+
+/* ── Forms ── */
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--gray600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.fc{width:100%;padding:10px 14px;border-radius:var(--r-md);border:.5px solid var(--gray100);font-size:13px;color:var(--gray800);background:#fff;transition:border .15s,box-shadow .15s;outline:none}
+.fc:focus{border-color:var(--t400);box-shadow:0 0 0 3px rgba(26,158,111,.12)}
+.fc::placeholder{color:var(--gray200)}
+select.fc{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+
+/* ── Toast ── */
+#toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:var(--r-md);font-size:13px;font-weight:500;color:#fff;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);animation:toastIn .35s ease;min-width:260px;pointer-events:all}
+.toast-ok{background:var(--t400)}.toast-err{background:var(--r400)}.toast-info{background:var(--b400)}
+.toast-x{margin-left:auto;opacity:.7;cursor:pointer;font-size:16px}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .2s}
+.modal-box{background:#fff;border-radius:var(--r-xl);padding:2rem;max-width:520px;width:100%;box-shadow:var(--sh-lg);animation:fadeUp .3s;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--gray50);border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--gray100)}
+
+/* ── Dashboard ── */
+.dash{display:flex;min-height:calc(100vh - 64px);padding-top:64px}
+.sidebar{width:240px;flex-shrink:0;background:#fff;border-right:.5px solid var(--gray100);padding:1.25rem 1rem;display:flex;flex-direction:column;gap:4px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.dash-main{flex:1;padding:2rem;overflow-x:hidden;min-width:0}
+.si{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-md);cursor:pointer;font-size:13px;font-weight:500;color:var(--gray600);transition:all .15s;user-select:none}
+.si:hover{background:var(--gray50);color:var(--gray800)}
+.si.active{background:var(--t50);color:var(--t600)}
+.si .icon{font-size:16px;width:20px;text-align:center}
+.sec-label{font-size:10px;font-weight:700;color:var(--gray200);text-transform:uppercase;letter-spacing:.08em;padding:8px 14px 4px;margin-top:8px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--t100);color:var(--t800);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex-shrink:0}
+
+/* ── Stats grid ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--gray100);padding:1.1rem 1.25rem}
+.stat-icon{width:38px;height:38px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px}
+.stat-val{font-family:var(--fd);font-size:1.7rem;font-weight:700;color:var(--gray800)}
+.stat-lbl{font-size:11px;color:var(--gray400);font-weight:500;margin-top:2px}
+
+/* ── Tables ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray400);border-bottom:.5px solid var(--gray100)}
+.tbl td{padding:12px 14px;border-bottom:.5px solid var(--gray50);vertical-align:middle;font-size:13px;color:var(--gray700)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--gray50)}
+
+/* ── Slots ── */
+.slot-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.slot{padding:8px 14px;border-radius:var(--r-md);border:.5px solid var(--gray100);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;background:#fff;color:var(--gray700)}
+.slot:hover{border-color:var(--t400);color:var(--t600)}
+.slot.sel{background:var(--t400);color:#fff;border-color:var(--t400)}
+
+/* ── Doctor card ── */
+.doc-card{background:#fff;border-radius:var(--r-xl);border:.5px solid var(--gray100);box-shadow:var(--sh-sm);overflow:hidden;cursor:pointer;transition:all .22s}
+.doc-card:hover{box-shadow:var(--sh-lg);transform:translateY(-4px)}
+.doc-img{height:96px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:700;font-family:var(--fd)}
+.doc-body{padding:1rem}
+.doc-name{font-size:15px;font-weight:600;font-family:var(--fd);margin-bottom:2px}
+.doc-spec{font-size:12px;color:var(--t600);font-weight:500;margin-bottom:8px}
+
+/* ── Progress ── */
+.prog-track{background:var(--gray100);border-radius:10px;height:6px;overflow:hidden}
+.prog-fill{height:100%;border-radius:10px;background:var(--t400);transition:width .8s}
+
+/* ── Bar charts ── */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;padding-top:16px}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.bar{border-radius:4px 4px 0 0;min-height:4px;transition:height .6s}
+.bar-v{font-size:11px;font-weight:600;color:var(--gray700)}
+.bar-l{font-size:10px;color:var(--gray400)}
+
+/* ── Calendar ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.cal-dn{text-align:center;font-size:11px;color:var(--gray400);font-weight:600;padding:4px 0}
+.cal-d{text-align:center;padding:8px 4px;border-radius:var(--r-sm);font-size:12px;color:var(--gray600);cursor:pointer;transition:background .15s;position:relative}
+.cal-d:hover{background:var(--gray50)}
+.cal-d.today{background:var(--t400);color:#fff;font-weight:600}
+.cal-d.has-apt::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--c400)}
+.cal-d.today.has-apt::after{background:#fff}
+.cal-d.dim{opacity:.3}
+
+/* ── FAQ ── */
+.faq-item{border-bottom:.5px solid var(--gray100)}
+.faq-q{padding:1rem 0;font-weight:500;font-size:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--gray700);transition:color .15s}
+.faq-q:hover{color:var(--t600)}
+.faq-arrow{transition:transform .25s;font-size:12px}
+.faq-item.open .faq-arrow{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;font-size:13px;color:var(--gray600);line-height:1.7;transition:max-height .3s,padding .3s}
+.faq-item.open .faq-a{max-height:200px;padding-bottom:1rem}
+
+/* ── Hero ── */
+.hero{min-height:calc(100vh - 64px);display:flex;align-items:center;position:relative;overflow:hidden;padding-top:64px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center}
+
+/* ── Divider ── */
+.divider{height:.5px;background:var(--gray100);margin:1.5rem 0}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--c400);display:inline-block;animation:pulse 1.5s infinite}
+.search-wrap{position:relative;flex:1}
+.search-wrap input{padding-left:36px}
+.s-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--gray200);pointer-events:none}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .nav-links{display:none;flex-direction:column;position:fixed;top:64px;left:0;right:0;background:#fff;border-bottom:.5px solid var(--gray100);padding:1rem;gap:0;z-index:999;box-shadow:var(--sh-md)}
+  .nav-links.open{display:flex}
+  .nav-links.open .nav-link{padding:12px 16px;border-radius:var(--r-md)}
+  .hamburger{display:flex}
+  .sidebar{display:none}
+  .dash-main{padding:1rem}
+  .hero-grid{grid-template-columns:1fr}
+  .hero-grid>div:last-child{display:none}
+  .stats{grid-template-columns:1fr 1fr}
+  .tbl thead{display:none}
+  .tbl td{display:flex;justify-content:space-between;padding:8px 12px}
+  .tbl td::before{content:attr(data-l);font-weight:600;color:var(--gray400)}
+  .book-grid{grid-template-columns:1fr!important}
+  .contact-grid{grid-template-columns:1fr!important}
+}
+</style>
+</head>
+<body>
+<!-- NAVBAR -->
+<nav id="nav">
+  <div class="nav-logo" onclick="go('landing')">
+    <div class="nav-logo-icon">🩺</div>
+    <span class="nav-logo-text">MediBook</span>
+  </div>
+  <div class="nav-links" id="nav-links">
+    <span class="nav-link active" data-p="landing" onclick="go('landing')">Home</span>
+    <span class="nav-link" data-p="doctors" onclick="go('doctors')">Doctors</span>
+    <span class="nav-link" data-p="book" onclick="go('book')">Book</span>
+    <span class="nav-link" data-p="about" onclick="go('about')">About</span>
+    <span class="nav-link" data-p="contact" onclick="go('contact')">Contact</span>
+  </div>
+  <div class="nav-right">
+    <button class="hamburger" id="hbg" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+    <div id="nav-guest" style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="go('login')">Sign In</button>
+      <button class="btn btn-primary btn-sm" onclick="go('register')">Get Started</button>
+    </div>
+    <div id="nav-user" style="display:none;align-items:center;gap:8px">
+      <div class="avatar" id="nav-av">?</div>
+      <span id="nav-nm" style="font-size:13px;font-weight:500;color:var(--gray700)"></span>
+      <button class="btn btn-ghost btn-sm" onclick="goDash()">Dashboard</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ LANDING ══ -->
+<div id="page-landing" class="page active">
+  <section class="hero" style="background:linear-gradient(135deg,var(--t50) 0%,#fff 55%,var(--b50) 100%)">
+    <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:var(--t50);top:-200px;right:-150px;opacity:.5;pointer-events:none"></div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:2rem;padding-bottom:2rem">
+      <div class="hero-grid">
+        <div>
+          <div class="anim-up" style="margin-bottom:12px"><span class="badge badge-t">🏥 India's Trusted Healthcare Platform</span></div>
+          <h1 class="anim-up d1" style="font-size:clamp(2.2rem,4.5vw,3.5rem);font-weight:700;margin-bottom:1rem;line-height:1.1">Book Doctor<br>Appointments<br><span style="color:var(--t400)">Instantly.</span></h1>
+          <p class="anim-up d2" style="font-size:15px;color:var(--gray400);line-height:1.8;margin-bottom:2rem;max-width:420px">Connect with 200+ verified specialists. Real-time slot booking, automated reminders, and seamless healthcare — all in one place.</p>
+          <div class="anim-up d3" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:2.5rem">
+            <button class="btn btn-primary btn-lg" onclick="go('book')">Book Appointment →</button>
+            <button class="btn btn-outline btn-lg" onclick="go('doctors')">Browse Doctors</button>
+          </div>
+          <div class="anim-up d4" style="display:flex;gap:2rem;flex-wrap:wrap">
+            <div><div style="font-family:var(--fd);font-size:1.8rem;font-weight:700;color:var(--t400)" id="cnt-d">200+</div><div style="font-size:12px;color:var(--gray400)">Verified Doctors</div></div>
+            <div><div style="font-family:var(--fd);font-size:1.8rem;font-weight:700;color:var(--t400)" id="cnt-p">50K+</div><div style="font-size:12px;color:var(--gray400)">Patients Served</div></div>
+            <div><div style="font-family:var(--fd);font-size:1.8rem;font-weight:700;color:var(--t400)" id="cnt-r">98%</div><div style="font-size:12px;color:var(--gray400)">Satisfaction</div></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center">
+          <div style="animation:float 3s ease-in-out infinite;position:relative">
+            <div class="card" style="padding:0;overflow:hidden;border-radius:var(--r-xl);box-shadow:var(--sh-lg);max-width:320px">
+              <div style="background:linear-gradient(135deg,var(--t400),var(--t600));padding:2rem;color:#fff;text-align:center">
+                <div style="font-size:4.5rem;margin-bottom:8px">👨‍⚕️</div>
+                <div style="font-family:var(--fd);font-size:1.1rem;font-weight:600">Dr.Akash k</div>
+                <div style="font-size:12px;opacity:.8;margin-top:2px">Senior Cardiologist</div>
+                <div style="margin-top:8px;color:#FAC775">★★★★★</div>
+              </div>
+              <div style="padding:1.2rem">
+                <div style="font-size:11px;font-weight:600;color:var(--gray400);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Available today</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <span style="padding:4px 8px;border-radius:var(--r-sm);background:var(--t50);color:var(--t800);font-size:11px;cursor:pointer">09:00</span>
+                  <span style="padding:4px 8px;border-radius:var(--r-sm);background:var(--t400);color:#fff;font-size:11px;cursor:pointer">10:00 ✓</span>
+                  <span style="padding:4px 8px;border-radius:var(--r-sm);background:var(--t50);color:var(--t800);font-size:11px;cursor:pointer">11:00</span>
+                  <span style="padding:4px 8px;border-radius:var(--r-sm);background:var(--t50);color:var(--t800);font-size:11px;cursor:pointer">14:00</span>
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1rem" onclick="go('book')">Confirm Booking</button>
+              </div>
+            </div>
+            <div class="card" style="position:absolute;top:-16px;right:-24px;padding:10px 14px;box-shadow:var(--sh-lg);font-size:12px">
+              <div style="color:var(--gray400);font-weight:600;font-size:10px">NEW APPOINTMENT</div>
+              <div style="color:var(--t600);font-weight:600">✓ Confirmed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--t400);padding:2.5rem 0">
+    <div class="wrap">
+      <div class="grid4" style="text-align:center">
+        <div><div style="font-size:2rem;margin-bottom:4px">🩺</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:#fff">200+</div><div style="font-size:12px;color:var(--t100)">Verified Doctors</div></div>
+        <div><div style="font-size:2rem;margin-bottom:4px">👥</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:#fff">50K+</div><div style="font-size:12px;color:var(--t100)">Patients Served</div></div>
+        <div><div style="font-size:2rem;margin-bottom:4px">📅</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:#fff">340</div><div style="font-size:12px;color:var(--t100)">Appointments Today</div></div>
+        <div><div style="font-size:2rem;margin-bottom:4px">⭐</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:#fff">98%</div><div style="font-size:12px;color:var(--t100)">Satisfaction Rate</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:#fff">
+    <div class="wrap">
+      <div style="text-align:center;margin-bottom:2.5rem">
+        <span class="badge badge-b" style="margin-bottom:12px">Our Services</span>
+        <h2 style="font-size:2.2rem;margin-bottom:.75rem">Everything You Need,<br>In One Platform</h2>
+        <p style="font-size:14px;color:var(--gray400);max-width:500px;margin:0 auto;line-height:1.8">From booking to follow-ups — we handle it all so you can focus on what matters: your health.</p>
+      </div>
+      <div class="grid3">
+        <div class="card card-hover" style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:12px">📅</div><h3 style="font-size:16px;margin-bottom:6px">Online Booking</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Book appointments 24/7 in under 60 seconds — no phone calls needed.</p></div>
+        <div class="card card-hover" style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:12px">🔔</div><h3 style="font-size:16px;margin-bottom:6px">Smart Reminders</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Automated SMS & email reminders so you never miss a visit again.</p></div>
+        <div class="card card-hover" style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:12px">🎥</div><h3 style="font-size:16px;margin-bottom:6px">Video Consults</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Consult top doctors from the comfort of your home via video call.</p></div>
+        <div class="card card-hover" style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:12px">📋</div><h3 style="font-size:16px;margin-bottom:6px">Medical Records</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Securely store and share your health history with any doctor.</p></div>
+        <div class="card card-hover" style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:12px">💊</div><h3 style="font-size:16px;margin-bottom:6px">E-Prescriptions</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Receive and download digital prescriptions instantly after your visit.</p></div>
+        <div class="card card-hover" style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:12px">🔒</div><h3 style="font-size:16px;margin-bottom:6px">Secure & Private</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">End-to-end encrypted data with HIPAA-compliant storage and access.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--gray50)">
+    <div class="wrap">
+      <div style="text-align:center;margin-bottom:2.5rem">
+        <span class="badge badge-t" style="margin-bottom:12px">Top Specialists</span>
+        <h2 style="font-size:2.2rem;margin-bottom:.75rem">Meet Our Doctors</h2>
+      </div>
+      <div id="landing-docs" class="grid3"></div>
+      <div style="text-align:center;margin-top:2rem">
+        <button class="btn btn-outline btn-lg" onclick="go('doctors')">View All 200+ Doctors →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:#fff">
+    <div class="wrap"><div style="text-align:center;margin-bottom:2.5rem"><span class="badge badge-p" style="margin-bottom:12px">How It Works</span><h2 style="font-size:2.2rem;margin-bottom:.75rem">Book in 3 Simple Steps</h2></div>
+      <div class="grid3">
+        <div style="text-align:center;padding:2rem 1rem"><div style="width:64px;height:64px;border-radius:50%;background:var(--t50);border:.5px solid var(--t100);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem">🔍</div><div style="font-size:11px;font-weight:700;color:var(--t400);letter-spacing:.08em;margin-bottom:6px">STEP 1</div><h3 style="font-size:17px;margin-bottom:6px">Find a Doctor</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Search by specialty, location, or name. Filter by ratings, availability, and fee.</p></div>
+        <div style="text-align:center;padding:2rem 1rem"><div style="width:64px;height:64px;border-radius:50%;background:var(--b50);border:.5px solid var(--b100);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem">📅</div><div style="font-size:11px;font-weight:700;color:var(--b400);letter-spacing:.08em;margin-bottom:6px">STEP 2</div><h3 style="font-size:17px;margin-bottom:6px">Choose a Slot</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Pick a date and time that fits your schedule from real-time available slots.</p></div>
+        <div style="text-align:center;padding:2rem 1rem"><div style="width:64px;height:64px;border-radius:50%;background:var(--p50);border:.5px solid var(--p100);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem">✅</div><div style="font-size:11px;font-weight:700;color:var(--p400);letter-spacing:.08em;margin-bottom:6px">STEP 3</div><h3 style="font-size:17px;margin-bottom:6px">Confirm & Go</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Get an instant confirmation and reminder. Just show up — we handle the rest.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--t50)">
+    <div class="wrap">
+      <div style="text-align:center;margin-bottom:2.5rem"><span class="badge badge-t" style="margin-bottom:12px">Testimonials</span><h2 style="font-size:2.2rem;margin-bottom:.75rem">Patients Love MediBook</h2></div>
+      <div class="grid3">
+        <div class="card" style="padding:1.5rem"><div style="color:var(--a400);margin-bottom:12px">★★★★★</div><p style="font-size:13px;color:var(--gray600);line-height:1.8;margin-bottom:14px">"Booking was seamless. The doctor was punctual and professional. The reminder system is simply brilliant!"</p><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="background:var(--t100);color:var(--t800)">RI</div><div><div style="font-weight:600;font-size:13px">Rekha Iyer</div><div style="font-size:11px;color:var(--gray400)">Patient, Bangalore</div></div></div></div>
+        <div class="card" style="padding:1.5rem"><div style="color:var(--a400);margin-bottom:12px">★★★★★</div><p style="font-size:13px;color:var(--gray600);line-height:1.8;margin-bottom:14px">"Never missed an appointment since I started using MediBook. The platform is intuitive and lightning fast."</p><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="background:var(--b100);color:var(--b800)">SB</div><div><div style="font-weight:600;font-size:13px">Suresh Babu</div><div style="font-size:11px;color:var(--gray400)">Patient, Mysuru</div></div></div></div>
+        <div class="card" style="padding:1.5rem"><div style="color:var(--a400);margin-bottom:12px">★★★★★</div><p style="font-size:13px;color:var(--gray600);line-height:1.8;margin-bottom:14px">"All my family's health records in one place. The doctors are top-notch and the video consult feature is a lifesaver."</p><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="background:var(--p100);color:var(--p800)">MK</div><div><div style="font-weight:600;font-size:13px">Meena Krishnan</div><div style="font-size:11px;color:var(--gray400)">Patient, Chennai</div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:#fff">
+    <div class="wrap" style="max-width:660px">
+      <div style="text-align:center;margin-bottom:2rem"><span class="badge badge-gray" style="margin-bottom:12px">FAQ</span><h2 style="font-size:2.2rem">Common Questions</h2></div>
+      <div id="faq-list"></div>
+    </div>
+  </section>
+
+  <section style="background:linear-gradient(135deg,var(--t600),var(--t400));padding:5rem 0;text-align:center">
+    <div class="wrap"><h2 style="font-size:2.5rem;color:#fff;margin-bottom:1rem">Ready to Take Control<br>of Your Health?</h2><p style="color:var(--t100);margin-bottom:2rem;font-size:15px">Join 50,000+ patients who trust MediBook for their healthcare needs.</p><button class="btn btn-lg" style="background:#fff;color:var(--t600);font-weight:600" onclick="go('register')">Create Free Account →</button></div>
+  </section>
+
+  <footer style="background:var(--gray800);color:var(--gray100);padding:3rem 0 1.5rem">
+    <div class="wrap">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;margin-bottom:2rem">
+        <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="width:32px;height:32px;border-radius:8px;background:var(--t400);display:flex;align-items:center;justify-content:center;font-size:16px">🩺</div><span style="font-family:var(--fd);font-size:18px;font-weight:700;color:#fff">MediBook</span></div><p style="font-size:12px;line-height:1.8;color:var(--gray400)">Smart healthcare appointment booking platform connecting patients with India's best doctors.</p></div>
+        <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray400);margin-bottom:12px">Platform</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span onclick="go('doctors')" style="cursor:pointer" onmouseover="this.style.color='#9FE1CB'" onmouseout="this.style.color=''">Find Doctors</span><span onclick="go('book')" style="cursor:pointer" onmouseover="this.style.color='#9FE1CB'" onmouseout="this.style.color=''">Book Appointment</span><span onclick="go('about')" style="cursor:pointer" onmouseover="this.style.color='#9FE1CB'" onmouseout="this.style.color=''">About Us</span></div></div>
+        <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray400);margin-bottom:12px">Specialties</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span>Cardiology</span><span>Neurology</span><span>Dermatology</span><span>Orthopedics</span></div></div>
+        <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray400);margin-bottom:12px">Contact</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span>📧 hello@medibook.in</span><span>📞 1800-123-4567</span><span>📍 Bengaluru, India</span></div></div>
+      </div>
+      <div style="border-top:.5px solid rgba(255,255,255,.08);padding-top:1.5rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><span style="font-size:12px;color:var(--gray400)">© 2026 MediBook. All rights reserved.</span><span style="font-size:12px;color:var(--gray400)">Privacy · Terms · Support</span></div>
+    </div>
+  </footer>
+</div>
+<!-- ══ DOCTORS PAGE ══ -->
+<div id="page-doctors" class="page" style="padding-top:64px">
+  <div style="background:#fff;border-bottom:.5px solid var(--gray100);padding:2rem 0">
+    <div class="wrap">
+      <h1 style="font-size:2rem;margin-bottom:.5rem">Find Your Doctor</h1>
+      <p style="color:var(--gray400);font-size:14px">Browse our 200+ verified specialists across all major disciplines.</p>
+      <div style="display:flex;gap:12px;margin-top:1.5rem;flex-wrap:wrap;align-items:center">
+        <div class="search-wrap" style="max-width:320px"><span class="s-icon">🔍</span><input id="doc-q" class="fc" placeholder="Search by name or specialty..." oninput="filterDocs()"></div>
+        <select id="doc-spec" class="fc" style="width:180px" onchange="filterDocs()"><option value="">All Specialties</option><option>Cardiologist</option><option>Neurologist</option><option>Dermatologist</option><option>Orthopedic</option><option>Gynecologist</option><option>Pediatrician</option></select>
+        <select id="doc-sort" class="fc" style="width:160px" onchange="filterDocs()"><option value="rating">Sort: Rating</option><option value="fee-lo">Fee: Low → High</option><option value="fee-hi">Fee: High → Low</option><option value="exp">Experience</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="wrap" style="padding-top:2rem;padding-bottom:3rem">
+    <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px"></div>
+    <div id="docs-empty" style="display:none;text-align:center;padding:3rem;color:var(--gray400)"><div style="font-size:3rem;margin-bottom:12px">🔍</div><p>No doctors found.</p></div>
+  </div>
+</div>
+
+<!-- ══ BOOK PAGE ══ -->
+<div id="page-book" class="page" style="padding-top:64px">
+  <div style="background:#fff;border-bottom:.5px solid var(--gray100);padding:2rem 0">
+    <div class="wrap"><h1 style="font-size:2rem;margin-bottom:.5rem">Book an Appointment</h1><p style="color:var(--gray400);font-size:14px">Select a doctor, pick a slot, and confirm — done in under 60 seconds.</p></div>
+  </div>
+  <div class="wrap" style="padding-top:2rem;padding-bottom:3rem">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start" class="book-grid">
+      <div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <h3 style="font-size:15px;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:var(--t400);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span>Select Doctor</h3>
+          <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <div class="search-wrap" style="flex:1;min-width:160px"><span class="s-icon">🔍</span><input id="bk-q" class="fc" placeholder="Search doctor..." oninput="filterBookDocs()"></div>
+            <select id="bk-spec" class="fc" style="width:150px" onchange="filterBookDocs()"><option value="">All Specialties</option><option>Cardiologist</option><option>Neurologist</option><option>Dermatologist</option><option>Orthopedic</option><option>Gynecologist</option><option>Pediatrician</option></select>
+          </div>
+          <div id="bk-docs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px"></div>
+        </div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <h3 style="font-size:15px;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:var(--b400);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span>Select Date</h3>
+          <input type="date" id="bk-date" class="fc" style="max-width:220px" onchange="bkState.date=this.value;updateSummary()">
+        </div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <h3 style="font-size:15px;margin-bottom:.5rem;display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:var(--p400);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">3</span>Select Time Slot</h3>
+          <p id="slot-hint" style="font-size:12px;color:var(--gray400);margin-bottom:10px">Select a doctor first to see available slots.</p>
+          <div id="slot-grid" class="slot-grid"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:var(--a400);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">4</span>Patient Details</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fg" style="margin-bottom:0"><label class="fl">Full Name</label><input id="bk-name" class="fc" placeholder="Your full name" oninput="updateSummary()"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Age</label><input id="bk-age" type="number" class="fc" placeholder="Age" min="1"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Phone</label><input id="bk-phone" class="fc" placeholder="+91 98765 43210"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Email</label><input id="bk-email" type="email" class="fc" placeholder="you@email.com"></div>
+          </div>
+          <div class="fg" style="margin-top:12px;margin-bottom:0"><label class="fl">Reason for Visit</label><textarea id="bk-reason" class="fc" rows="3" placeholder="Briefly describe your symptoms or reason for visit..."></textarea></div>
+        </div>
+      </div>
+      <div style="position:sticky;top:80px">
+        <div class="card">
+          <h3 style="font-size:15px;margin-bottom:1rem;color:var(--gray700)">Booking Summary</h3>
+          <div id="sum-doc-box" style="display:none;margin-bottom:1rem;padding:12px;background:var(--t50);border-radius:var(--r-md);border:.5px solid var(--t100)">
+            <div style="font-weight:600;font-size:14px;color:var(--t800)" id="sum-doc-name">—</div>
+            <div style="font-size:12px;color:var(--t600)" id="sum-doc-spec">—</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem">
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--gray400)">Date</span><span id="sum-date" style="font-weight:500">Not selected</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--gray400)">Time</span><span id="sum-time" style="font-weight:500">Not selected</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--gray400)">Patient</span><span id="sum-patient" style="font-weight:500">Not entered</span></div>
+            <div class="divider" style="margin:.5rem 0"></div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600"><span>Consultation Fee</span><span id="sum-fee" style="color:var(--t600)">₹0</span></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:14px;padding:13px" onclick="confirmBooking()">Confirm Appointment</button>
+          <p style="font-size:11px;color:var(--gray400);text-align:center;margin-top:8px">Free cancellation up to 2 hours before</p>
+        </div>
+        <div class="card" style="margin-top:1rem;padding:1rem">
+          <div style="font-size:12px;font-weight:600;color:var(--gray400);margin-bottom:8px">WHY MEDIBOOK?</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+            <div><span style="color:var(--t400)">✓ </span>Verified doctors only</div>
+            <div><span style="color:var(--t400)">✓ </span>Instant confirmation</div>
+            <div><span style="color:var(--t400)">✓ </span>Free cancellation</div>
+            <div><span style="color:var(--t400)">✓ </span>Secure payments</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="page-login" class="page" style="padding-top:64px;background:var(--gray50);min-height:100vh;display:flex;align-items:center">
+  <div style="max-width:420px;margin:2rem auto;width:100%;padding:0 1rem">
+    <div style="text-align:center;margin-bottom:2rem"><div style="font-size:3rem;margin-bottom:8px">🩺</div><h2 style="font-size:1.8rem">Welcome Back</h2><p style="font-size:13px;color:var(--gray400);margin-top:4px">Sign in to your MediBook account</p></div>
+    <div class="card" style="padding:2rem">
+      <div style="margin-bottom:1.5rem">
+        <div style="font-size:11px;font-weight:700;color:var(--gray400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Quick Demo Login</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" onclick="demoLogin('patient')">👤 Patient</button>
+          <button class="btn btn-sm btn-outline" onclick="demoLogin('doctor')">🩺 Doctor</button>
+          <button class="btn btn-sm btn-ghost" onclick="demoLogin('admin')">⚙️ Admin</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="fg"><label class="fl">Email Address</label><input id="lg-email" class="fc" type="email" placeholder="you@email.com"></div>
+      <div class="fg"><label class="fl">Password</label><input id="lg-pwd" class="fc" type="password" placeholder="••••••••"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox"> Remember me</label>
+        <span style="font-size:12px;color:var(--t600);cursor:pointer" onclick="toast('Password reset link sent!','info')">Forgot password?</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="doLogin()">Sign In</button>
+      <p style="text-align:center;font-size:13px;margin-top:1rem;color:var(--gray400)">Don't have an account? <span style="color:var(--t600);cursor:pointer;font-weight:500" onclick="go('register')">Sign Up</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ══ -->
+<div id="page-register" class="page" style="padding-top:64px;background:var(--gray50);min-height:100vh;display:flex;align-items:center">
+  <div style="max-width:460px;margin:2rem auto;width:100%;padding:0 1rem">
+    <div style="text-align:center;margin-bottom:2rem"><div style="font-size:3rem;margin-bottom:8px">✨</div><h2 style="font-size:1.8rem">Create Your Account</h2><p style="font-size:13px;color:var(--gray400);margin-top:4px">Join 50,000+ patients on MediBook</p></div>
+    <div class="card" style="padding:2rem">
+      <div class="fg">
+        <label class="fl">I am a</label>
+        <div style="display:flex;gap:8px"><button id="rb-patient" class="btn btn-primary btn-sm" onclick="setRole('patient')">👤 Patient</button><button id="rb-doctor" class="btn btn-ghost btn-sm" onclick="setRole('doctor')">🩺 Doctor</button></div>
+        <input type="hidden" id="reg-role" value="patient">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg" style="margin-bottom:0"><label class="fl">First Name</label><input id="rg-fn" class="fc" placeholder="Ananya"></div>
+        <div class="fg" style="margin-bottom:0"><label class="fl">Last Name</label><input id="rg-ln" class="fc" placeholder="Sharma"></div>
+      </div>
+      <div class="fg" style="margin-top:12px"><label class="fl">Email</label><input id="rg-email" class="fc" type="email" placeholder="you@email.com"></div>
+      <div class="fg"><label class="fl">Phone</label><input id="rg-phone" class="fc" placeholder="+91 98765 43210"></div>
+      <div id="doc-fields" style="display:none">
+        <div class="fg"><label class="fl">Specialty</label><select id="rg-spec" class="fc"><option>Cardiologist</option><option>Neurologist</option><option>Dermatologist</option><option>Orthopedic</option><option>Gynecologist</option><option>Pediatrician</option></select></div>
+        <div class="fg"><label class="fl">Medical License</label><input id="rg-lic" class="fc" placeholder="MCI-XXXX-XXXX"></div>
+      </div>
+      <div class="fg"><label class="fl">Password</label><input id="rg-pwd" class="fc" type="password" placeholder="Minimum 8 characters"></div>
+      <div class="fg"><label class="fl">Confirm Password</label><input id="rg-pwd2" class="fc" type="password" placeholder="Repeat password"></div>
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;cursor:pointer;margin-bottom:1.5rem;color:var(--gray600)"><input type="checkbox" id="terms-cb" style="margin-top:2px"> I agree to MediBook's Terms of Service and Privacy Policy</label>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="doRegister()">Create Account</button>
+      <p style="text-align:center;font-size:13px;margin-top:1rem;color:var(--gray400)">Already have an account? <span style="color:var(--t600);cursor:pointer;font-weight:500" onclick="go('login')">Sign In</span></p>
+    </div>
+  </div>
+</div>
+<!-- ══ PATIENT DASHBOARD ══ -->
+<div id="page-patient-dash" class="page">
+  <div class="dash">
+    <aside class="sidebar">
+      <div style="padding:0 0 1rem;border-bottom:.5px solid var(--gray100);margin-bottom:.5rem">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar" id="p-av">JS</div>
+          <div><div style="font-weight:600;font-size:13px" id="p-name">Jane Smith</div><div style="font-size:11px;color:var(--gray400)">Patient</div></div>
+        </div>
+      </div>
+      <div class="sec-label">Main</div>
+      <div class="si active" onclick="switchTab(this,'p','overview')"><span class="icon">🏠</span>Overview</div>
+      <div class="si" onclick="switchTab(this,'p','appointments')"><span class="icon">📅</span>My Appointments</div>
+      <div class="si" onclick="switchTab(this,'p','book')"><span class="icon">➕</span>Book Appointment</div>
+      <div class="sec-label">Account</div>
+      <div class="si" onclick="switchTab(this,'p','profile')"><span class="icon">👤</span>Profile</div>
+      <div class="si" onclick="switchTab(this,'p','records')"><span class="icon">📋</span>Medical Records</div>
+      <div class="si" onclick="switchTab(this,'p','notifications')"><span class="icon">🔔</span>Notifications <span class="notif-dot" style="margin-left:auto"></span></div>
+      <div style="margin-top:auto;padding-top:1rem;border-top:.5px solid var(--gray100)">
+        <div class="si" onclick="logout()"><span class="icon">🚪</span>Sign Out</div>
+      </div>
+    </aside>
+    <main class="dash-main">
+      <!-- Overview -->
+      <div id="p-tab-overview" class="p-tab">
+        <div style="margin-bottom:1.5rem"><h2 style="font-size:1.5rem;margin-bottom:4px" id="p-greet">Good morning! 👋</h2><p style="color:var(--gray400);font-size:13px">Here's a summary of your health activity.</p></div>
+        <div class="stats">
+          <div class="stat-card"><div class="stat-icon" style="background:var(--t50)">📅</div><div class="stat-val" id="p-s-total">0</div><div class="stat-lbl">Total Appointments</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--b50)">⏳</div><div class="stat-val" id="p-s-up">0</div><div class="stat-lbl">Upcoming</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--g50)">🏁</div><div class="stat-val" id="p-s-done">0</div><div class="stat-lbl">Completed</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--r50)">❌</div><div class="stat-val" id="p-s-cancel">0</div><div class="stat-lbl">Cancelled</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="font-size:15px">Upcoming Appointments</h3><button class="btn btn-sm btn-outline" onclick="switchTabById('p','appointments')">View All</button></div>
+            <div id="p-upcoming"></div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:15px;margin-bottom:1rem">Quick Actions</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-primary" style="justify-content:center" onclick="go('book')">📅 Book Appointment</button>
+              <button class="btn btn-outline" style="justify-content:center" onclick="switchTabById('p','appointments')">📋 My History</button>
+              <button class="btn btn-ghost" style="justify-content:center" onclick="toast('Prescriptions coming soon!','info')">💊 Prescriptions</button>
+            </div>
+            <div class="divider"></div>
+            <div style="font-size:12px;font-weight:600;color:var(--gray400);margin-bottom:8px">HEALTH TIP</div>
+            <div style="background:var(--t50);border-radius:var(--r-md);padding:.75rem;border:.5px solid var(--t100)"><p style="font-size:12px;color:var(--t800);line-height:1.7">Stay hydrated! Drinking 8 glasses of water daily improves energy and focus. 💧</p></div>
+          </div>
+        </div>
+      </div>
+      <!-- Appointments -->
+      <div id="p-tab-appointments" class="p-tab" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><h2 style="font-size:1.5rem">My Appointments</h2><button class="btn btn-primary btn-sm" onclick="go('book')">+ Book New</button></div>
+        <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="filterApts('All',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterApts('Confirmed',this)">Confirmed</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterApts('Pending',this)">Pending</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterApts('Completed',this)">Completed</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterApts('Cancelled',this)">Cancelled</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="tbl"><thead><tr><th>Doctor</th><th>Date & Time</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody id="p-apt-tbody"></tbody></table>
+        </div>
+      </div>
+      <!-- Book redirect -->
+      <div id="p-tab-book" class="p-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1rem">Book Appointment</h2>
+        <div style="text-align:center;padding:3rem;color:var(--gray400)"><div style="font-size:3rem;margin-bottom:12px">📅</div><p style="margin-bottom:1.5rem">Use our full booking experience to find your doctor and pick a slot.</p><button class="btn btn-primary" onclick="go('book')">Go to Booking Page →</button></div>
+      </div>
+      <!-- Profile -->
+      <div id="p-tab-profile" class="p-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">My Profile</h2>
+        <div class="card" style="max-width:600px">
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+            <div id="p-prof-av" style="width:72px;height:72px;border-radius:50%;background:var(--t100);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:var(--t800)">JS</div>
+            <div><div style="font-size:1.1rem;font-weight:600" id="p-prof-name">Jane Smith</div><div style="font-size:12px;color:var(--gray400)">Patient · Member since 2024</div><button class="btn btn-sm btn-ghost" style="margin-top:6px" onclick="toast('Photo upload coming soon!','info')">Change Photo</button></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fg" style="margin-bottom:0"><label class="fl">First Name</label><input class="fc" id="pf-fn" value="Jane"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Last Name</label><input class="fc" id="pf-ln" value="Smith"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Email</label><input class="fc" type="email" id="pf-email" value="jane@email.com"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Phone</label><input class="fc" id="pf-phone" value="+91 98765 43210"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Date of Birth</label><input class="fc" type="date" value="1992-05-14"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Blood Group</label><select class="fc"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option selected>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+          </div>
+          <div class="fg" style="margin-top:12px"><label class="fl">Address</label><textarea class="fc" rows="2">123, MG Road, Mysuru, Karnataka 570001</textarea></div>
+          <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+        </div>
+      </div>
+      <!-- Records -->
+      <div id="p-tab-records" class="p-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Medical Records</h2>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:1rem;border-bottom:.5px solid var(--gray100);display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:500">All Documents</span><button class="btn btn-sm btn-outline" onclick="toast('Upload coming soon!','info')">+ Upload</button></div>
+          <div style="padding:1.5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+            <div class="card card-hover" style="padding:1rem" onclick="toast('Opening Blood Report...','info')"><div style="font-size:2rem;margin-bottom:8px">📄</div><div style="font-weight:500;font-size:13px;margin-bottom:2px">Blood Report</div><div style="font-size:11px;color:var(--gray400)">Jan 15, 2026 · PDF</div></div>
+            <div class="card card-hover" style="padding:1rem" onclick="toast('Opening ECG Report...','info')"><div style="font-size:2rem;margin-bottom:8px">🩻</div><div style="font-weight:500;font-size:13px;margin-bottom:2px">ECG Report</div><div style="font-size:11px;color:var(--gray400)">Mar 02, 2026 · PDF</div></div>
+            <div class="card card-hover" style="padding:1rem" onclick="toast('Opening Prescription...','info')"><div style="font-size:2rem;margin-bottom:8px">💊</div><div style="font-weight:500;font-size:13px;margin-bottom:2px">Prescription</div><div style="font-size:11px;color:var(--gray400)">Apr 20, 2026 · PDF</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Notifications -->
+      <div id="p-tab-notifications" class="p-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Notifications</h2>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="card" style="display:flex;gap:12px;align-items:flex-start"><div style="width:36px;height:36px;border-radius:50%;background:var(--t50);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✅</div><div><div style="font-weight:500;font-size:13px">Appointment Confirmed</div><div style="font-size:12px;color:var(--gray400);margin-top:2px">Your appointment with Dr.Akash k on May 22 at 10:00 AM is confirmed.</div><div style="font-size:11px;color:var(--gray200);margin-top:6px">2 hours ago</div></div></div>
+          <div class="card" style="display:flex;gap:12px;align-items:flex-start"><div style="width:36px;height:36px;border-radius:50%;background:var(--a50);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⏰</div><div><div style="font-weight:500;font-size:13px">Appointment Reminder</div><div style="font-size:12px;color:var(--gray400);margin-top:2px">Reminder: You have an appointment tomorrow at 10:00 AM with Dr.Akash k.</div><div style="font-size:11px;color:var(--gray200);margin-top:6px">Yesterday</div></div></div>
+          <div class="card" style="display:flex;gap:12px;align-items:flex-start"><div style="width:36px;height:36px;border-radius:50%;background:var(--b50);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📋</div><div><div style="font-weight:500;font-size:13px">New Prescription Available</div><div style="font-size:12px;color:var(--gray400);margin-top:2px">Dr. Priya Nair has uploaded a prescription for your last visit.</div><div style="font-size:11px;color:var(--gray200);margin-top:6px">3 days ago</div></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<!-- ══ DOCTOR DASHBOARD ══ -->
+<div id="page-doctor-dash" class="page">
+  <div class="dash">
+    <aside class="sidebar">
+      <div style="padding:0 0 1rem;border-bottom:.5px solid var(--gray100);margin-bottom:.5rem">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar" id="d-av" style="background:var(--b100);color:var(--b800)">DR</div>
+          <div><div style="font-weight:600;font-size:13px" id="d-name">Dr. User</div><div style="font-size:11px;color:var(--gray400)">Doctor</div></div>
+        </div>
+      </div>
+      <div class="sec-label">Main</div>
+      <div class="si active" onclick="switchTab(this,'d','overview')"><span class="icon">🏠</span>Overview</div>
+      <div class="si" onclick="switchTab(this,'d','appointments')"><span class="icon">📅</span>Appointments</div>
+      <div class="si" onclick="switchTab(this,'d','calendar')"><span class="icon">🗓</span>Calendar</div>
+      <div class="si" onclick="switchTab(this,'d','analytics')"><span class="icon">📊</span>Analytics</div>
+      <div class="sec-label">Settings</div>
+      <div class="si" onclick="switchTab(this,'d','profile')"><span class="icon">👤</span>My Profile</div>
+      <div class="si" onclick="switchTab(this,'d','availability')"><span class="icon">⏰</span>Availability</div>
+      <div style="margin-top:auto;padding-top:1rem;border-top:.5px solid var(--gray100)">
+        <div class="si" onclick="logout()"><span class="icon">🚪</span>Sign Out</div>
+      </div>
+    </aside>
+    <main class="dash-main">
+      <!-- Overview -->
+      <div id="d-tab-overview" class="d-tab">
+        <div style="margin-bottom:1.5rem"><h2 style="font-size:1.5rem;margin-bottom:4px">Doctor Dashboard</h2><p style="color:var(--gray400);font-size:13px">Manage your appointments and patient care.</p></div>
+        <div class="stats">
+          <div class="stat-card"><div class="stat-icon" style="background:var(--t50)">📅</div><div class="stat-val" id="d-s-total">0</div><div class="stat-lbl">Total Appointments</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--a50)">⏳</div><div class="stat-val" id="d-s-pending">0</div><div class="stat-lbl">Pending</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--t50)">✅</div><div class="stat-val" id="d-s-confirmed">0</div><div class="stat-lbl">Confirmed</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--g50)">🏁</div><div class="stat-val" id="d-s-done">0</div><div class="stat-lbl">Completed</div></div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="font-size:15px">Pending Approvals</h3><span class="badge badge-a" id="d-pending-badge">0 pending</span></div>
+          <div id="d-pending-list"></div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <h3 style="font-size:15px;margin-bottom:1rem">Weekly Appointment Volume</h3>
+          <div class="bar-chart" id="d-weekly-chart" style="height:140px"></div>
+          <div style="display:flex;justify-content:space-around;margin-top:6px"><span class="bar-l">Mon</span><span class="bar-l">Tue</span><span class="bar-l">Wed</span><span class="bar-l">Thu</span><span class="bar-l">Fri</span><span class="bar-l">Sat</span><span class="bar-l">Sun</span></div>
+        </div>
+      </div>
+      <!-- Appointments -->
+      <div id="d-tab-appointments" class="d-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">All Appointments</h2>
+        <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>Patient</th><th>Date & Time</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody id="d-apt-tbody"></tbody></table></div>
+      </div>
+      <!-- Calendar -->
+      <div id="d-tab-calendar" class="d-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Appointment Calendar</h2>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)">‹ Prev</button>
+            <span style="font-weight:600;font-size:15px" id="cal-label">June 2026</span>
+            <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)">Next ›</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <h3 style="font-size:14px;margin-bottom:.75rem" id="cal-day-title">Click a date to see appointments</h3>
+          <div id="cal-day-list" style="color:var(--gray400);font-size:13px">No date selected.</div>
+        </div>
+      </div>
+      <!-- Analytics -->
+      <div id="d-tab-analytics" class="d-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Analytics</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <div class="card"><h3 style="font-size:14px;margin-bottom:1rem;color:var(--gray600)">Appointment Status</h3><div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap"><svg id="donut-svg" width="120" height="120" viewBox="0 0 120 120"></svg><div id="donut-legend" style="display:flex;flex-direction:column;gap:8px;font-size:12px"></div></div></div>
+          <div class="card"><h3 style="font-size:14px;margin-bottom:1rem;color:var(--gray600)">Patient Satisfaction</h3><div id="sat-bars" style="display:flex;flex-direction:column;gap:12px"></div></div>
+        </div>
+        <div class="card" style="margin-top:1.5rem">
+          <h3 style="font-size:14px;margin-bottom:1rem;color:var(--gray600)">Monthly Trend</h3>
+          <div class="bar-chart" id="d-monthly-chart" style="height:160px"></div>
+          <div style="display:flex;justify-content:space-around;margin-top:6px"><span class="bar-l">Jan</span><span class="bar-l">Feb</span><span class="bar-l">Mar</span><span class="bar-l">Apr</span><span class="bar-l">May</span><span class="bar-l">Jun</span></div>
+        </div>
+      </div>
+      <!-- Profile -->
+      <div id="d-tab-profile" class="d-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Doctor Profile</h2>
+        <div class="card" style="max-width:600px">
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+            <div id="d-prof-av" style="width:72px;height:72px;border-radius:50%;background:var(--b100);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:var(--b800)">DR</div>
+            <div><div style="font-size:1.1rem;font-weight:600" id="d-prof-name">Dr. User</div><div style="font-size:12px;color:var(--gray400)">Specialist · MBBS, MD</div><span class="badge badge-t" style="margin-top:4px">✓ Verified</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fg" style="margin-bottom:0"><label class="fl">Full Name</label><input class="fc" id="df-name" value="Dr.Akash k"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Specialty</label><input class="fc" id="df-spec" value="Cardiologist"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Experience</label><input class="fc" value="12 years"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Consultation Fee</label><input class="fc" value="₹800"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Hospital</label><input class="fc" value="Apollo Hospital, Mysuru"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">License No.</label><input class="fc" value="MCI-2015-XXXX"></div>
+          </div>
+          <div class="fg" style="margin-top:12px"><label class="fl">About / Bio</label><textarea class="fc" rows="3">Senior cardiologist with expertise in interventional cardiology and heart failure management.</textarea></div>
+          <button class="btn btn-primary" onclick="toast('Profile saved!','ok')">Save Changes</button>
+        </div>
+      </div>
+      <!-- Availability -->
+      <div id="d-tab-availability" class="d-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Manage Availability</h2>
+        <div class="card" style="max-width:600px">
+          <p style="font-size:13px;color:var(--gray400);margin-bottom:1.5rem">Toggle time slots to mark them as available or unavailable for each day.</p>
+          <div id="avail-list" style="display:flex;flex-direction:column;gap:1.25rem"></div>
+          <button class="btn btn-primary" style="margin-top:1.5rem" onclick="toast('Availability updated!','ok')">Save Schedule</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ══ ADMIN DASHBOARD ══ -->
+<div id="page-admin-dash" class="page">
+  <div class="dash">
+    <aside class="sidebar">
+      <div style="padding:0 0 1rem;border-bottom:.5px solid var(--gray100);margin-bottom:.5rem">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar" style="background:var(--p100);color:var(--p800)">AD</div>
+          <div><div style="font-weight:600;font-size:13px">Admin</div><div style="font-size:11px;color:var(--gray400)">Administrator</div></div>
+        </div>
+      </div>
+      <div class="sec-label">Management</div>
+      <div class="si active" onclick="switchTab(this,'a','overview')"><span class="icon">🏠</span>Overview</div>
+      <div class="si" onclick="switchTab(this,'a','doctors')"><span class="icon">🩺</span>Manage Doctors</div>
+      <div class="si" onclick="switchTab(this,'a','patients')"><span class="icon">👥</span>Manage Patients</div>
+      <div class="si" onclick="switchTab(this,'a','appointments')"><span class="icon">📅</span>All Appointments</div>
+      <div class="si" onclick="switchTab(this,'a','analytics')"><span class="icon">📊</span>Analytics</div>
+      <div class="sec-label">System</div>
+      <div class="si" onclick="toast('Settings coming soon!','info')"><span class="icon">⚙️</span>Settings</div>
+      <div style="margin-top:auto;padding-top:1rem;border-top:.5px solid var(--gray100)">
+        <div class="si" onclick="logout()"><span class="icon">🚪</span>Sign Out</div>
+      </div>
+    </aside>
+    <main class="dash-main">
+      <div id="a-tab-overview" class="a-tab">
+        <div style="margin-bottom:1.5rem"><h2 style="font-size:1.5rem;margin-bottom:4px">Admin Dashboard</h2><p style="color:var(--gray400);font-size:13px">System overview and key metrics.</p></div>
+        <div class="stats">
+          <div class="stat-card"><div class="stat-icon" style="background:var(--t50)">🩺</div><div class="stat-val">6</div><div class="stat-lbl">Total Doctors</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--b50)">👥</div><div class="stat-val">3</div><div class="stat-lbl">Patients</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--p50)">📅</div><div class="stat-val" id="a-s-total">0</div><div class="stat-lbl">Total Appointments</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--a50)">⏳</div><div class="stat-val" id="a-s-pending">0</div><div class="stat-lbl">Pending</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--g50)">💰</div><div class="stat-val" id="a-s-rev">₹0</div><div class="stat-lbl">Est. Revenue</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem">
+          <div class="card"><h3 style="font-size:15px;margin-bottom:1rem">Appointments by Status</h3><div id="a-status-bars" style="display:flex;flex-direction:column;gap:12px"></div></div>
+          <div class="card"><h3 style="font-size:15px;margin-bottom:1rem">Top Doctors by Bookings</h3><div id="a-top-docs" style="display:flex;flex-direction:column;gap:10px"></div></div>
+        </div>
+      </div>
+      <div id="a-tab-doctors" class="a-tab" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><h2 style="font-size:1.5rem">Manage Doctors</h2><button class="btn btn-primary btn-sm" onclick="toast('Add doctor form coming soon!','info')">+ Add Doctor</button></div>
+        <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>Name</th><th>Specialty</th><th>Exp</th><th>Fee</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead><tbody id="a-doc-tbody"></tbody></table></div>
+      </div>
+      <div id="a-tab-patients" class="a-tab" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><h2 style="font-size:1.5rem">Manage Patients</h2></div>
+        <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Appointments</th><th>Last Visit</th><th>Actions</th></tr></thead><tbody>
+          <tr><td data-l="Name"><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px">RI</div>Rekha Iyer</div></td><td data-l="Email">rekha@gmail.com</td><td data-l="Phone">+91 98765 43210</td><td data-l="Apts">2</td><td data-l="Last">Apr 20, 2026</td><td><button class="btn btn-sm btn-ghost" onclick="toast('Patient details opened','info')">View</button></td></tr>
+          <tr><td data-l="Name"><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:var(--b100);color:var(--b800)">SB</div>Suresh Babu</div></td><td data-l="Email">suresh@gmail.com</td><td data-l="Phone">+91 87654 32109</td><td data-l="Apts">1</td><td data-l="Last">May 10, 2026</td><td><button class="btn btn-sm btn-ghost" onclick="toast('Patient details opened','info')">View</button></td></tr>
+          <tr><td data-l="Name"><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:var(--p100);color:var(--p800)">JD</div>Jane Demo</div></td><td data-l="Email">jane@medibook.in</td><td data-l="Phone">+91 76543 21098</td><td data-l="Apts">0</td><td data-l="Last">—</td><td><button class="btn btn-sm btn-ghost" onclick="toast('Patient details opened','info')">View</button></td></tr>
+        </tbody></table></div>
+      </div>
+      <div id="a-tab-appointments" class="a-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">All Appointments</h2>
+        <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>Patient</th><th>Doctor</th><th>Date & Time</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody id="a-apt-tbody"></tbody></table></div>
+      </div>
+      <div id="a-tab-analytics" class="a-tab" style="display:none">
+        <h2 style="font-size:1.5rem;margin-bottom:1.5rem">Analytics & Reports</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <div class="card"><h3 style="font-size:14px;margin-bottom:1rem;color:var(--gray600)">Appointments This Week</h3><div class="bar-chart" id="a-weekly-chart" style="height:120px"></div><div style="display:flex;justify-content:space-around;margin-top:6px"><span class="bar-l">Mon</span><span class="bar-l">Tue</span><span class="bar-l">Wed</span><span class="bar-l">Thu</span><span class="bar-l">Fri</span><span class="bar-l">Sat</span><span class="bar-l">Sun</span></div></div>
+          <div class="card"><h3 style="font-size:14px;margin-bottom:1rem;color:var(--gray600)">Specialty Distribution</h3><div id="a-spec-bars" style="display:flex;flex-direction:column;gap:10px"></div></div>
+        </div>
+        <div class="card" style="margin-top:1.5rem;display:flex;gap:2rem;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px"><div style="font-size:12px;color:var(--gray400);margin-bottom:4px">Total Revenue (Est.)</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:var(--t600)" id="a-rev-big">₹0</div></div>
+          <div style="flex:1;min-width:160px"><div style="font-size:12px;color:var(--gray400);margin-bottom:4px">Avg. Appointments/Day</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:var(--b600)">12</div></div>
+          <div style="flex:1;min-width:160px"><div style="font-size:12px;color:var(--gray400);margin-bottom:4px">Doctor Utilization</div><div style="font-family:var(--fd);font-size:2rem;font-weight:700;color:var(--p600)">78%</div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ══ ABOUT ══ -->
+<div id="page-about" class="page" style="padding-top:64px">
+  <div style="background:linear-gradient(135deg,var(--t50),#fff);padding:5rem 0;text-align:center">
+    <div class="wrap" style="max-width:640px"><span class="badge badge-t" style="margin-bottom:16px">About MediBook</span><h1 style="font-size:2.8rem;margin-bottom:1rem">Healthcare, Reimagined</h1><p style="font-size:15px;color:var(--gray400);line-height:1.8">MediBook was founded in 2022 with a single mission: make quality healthcare accessible to every Indian. We bridge the gap between patients and top-tier medical professionals using technology.</p></div>
+  </div>
+  <div class="section" style="background:#fff">
+    <div class="wrap">
+      <div class="grid3">
+        <div class="card" style="text-align:center;padding:2rem"><div style="font-size:3rem;margin-bottom:12px">🎯</div><h3 style="font-size:17px;margin-bottom:8px">Our Mission</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">To eliminate barriers to healthcare access through technology, making quality medical care available to all.</p></div>
+        <div class="card" style="text-align:center;padding:2rem"><div style="font-size:3rem;margin-bottom:12px">👁</div><h3 style="font-size:17px;margin-bottom:8px">Our Vision</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">A world where every person can connect with the right doctor, at the right time, from anywhere.</p></div>
+        <div class="card" style="text-align:center;padding:2rem"><div style="font-size:3rem;margin-bottom:12px">💎</div><h3 style="font-size:17px;margin-bottom:8px">Our Values</h3><p style="font-size:13px;color:var(--gray400);line-height:1.7">Transparency, patient-first care, and relentless innovation in every feature we build.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONTACT ══ -->
+<div id="page-contact" class="page" style="padding-top:64px">
+  <div style="background:var(--gray50);padding:3rem 0 5rem">
+    <div class="wrap" style="max-width:800px">
+      <div style="text-align:center;margin-bottom:3rem"><h1 style="font-size:2.5rem;margin-bottom:.5rem">Get in Touch</h1><p style="color:var(--gray400);font-size:14px">We're here to help. Reach out to us any time.</p></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem" class="contact-grid">
+        <div>
+          <div class="card" style="margin-bottom:1rem;display:flex;gap:12px;align-items:flex-start"><div style="font-size:1.5rem">📧</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Email</div><div style="font-size:13px;color:var(--gray400)">hello@medibook.in</div></div></div>
+          <div class="card" style="margin-bottom:1rem;display:flex;gap:12px;align-items:flex-start"><div style="font-size:1.5rem">📞</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Phone</div><div style="font-size:13px;color:var(--gray400)">1800-123-4567 (Toll Free)</div></div></div>
+          <div class="card" style="display:flex;gap:12px;align-items:flex-start"><div style="font-size:1.5rem">📍</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px">Office</div><div style="font-size:13px;color:var(--gray400)">12th Floor, Tech Hub,<br>Mysuru, Karnataka 570001</div></div></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:1rem">Send a Message</h3>
+          <div class="fg"><label class="fl">Name</label><input id="ct-name" class="fc" placeholder="Your name"></div>
+          <div class="fg"><label class="fl">Email</label><input id="ct-email" class="fc" type="email" placeholder="you@email.com"></div>
+          <div class="fg"><label class="fl">Message</label><textarea id="ct-msg" class="fc" rows="4" placeholder="How can we help?"></textarea></div>
+          <button class="btn btn-primary" onclick="sendContact()">Send Message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal-bg" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head"><h3 id="modal-title" style="font-size:18px"></h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script>
+// ══════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════
+const DOCTORS = [
+  { id:1, name:"Dr.Akash k", spec:"Cardiologist",  exp:12, fee:800,  rating:4.9, rev:312, ini:"AS", col:"t", slots:["09:00","10:00","11:00","14:00","15:00","16:00"], about:"Senior cardiologist with expertise in interventional cardiology and heart failure management." },
+  { id:2, name:"Dr. Rahul Mehta",   spec:"Neurologist",   exp:9,  fee:700,  rating:4.8, rev:254, ini:"RM", col:"b", slots:["10:00","11:00","13:00","14:00","17:00"],           about:"Specialist in stroke management, epilepsy, and neurodegenerative diseases." },
+  { id:3, name:"Dr. Priya Nair",    spec:"Dermatologist", exp:7,  fee:600,  rating:4.7, rev:189, ini:"PN", col:"c", slots:["09:00","10:00","12:00","15:00","16:00"],           about:"Expert in cosmetic dermatology, acne treatment, and skin cancer screening." },
+  { id:4, name:"Dr. Vikram Rao",    spec:"Orthopedic",    exp:15, fee:900,  rating:4.9, rev:401, ini:"VR", col:"a", slots:["08:00","09:00","11:00","13:00","15:00"],           about:"Specializes in joint replacement, sports injuries, and spine surgery." },
+  { id:5, name:"Dr. Sunita Patel",  spec:"Gynecologist",  exp:11, fee:750,  rating:4.8, rev:276, ini:"SP", col:"p", slots:["09:00","10:00","11:00","14:00","16:00"],           about:"Women's health specialist with expertise in maternal-fetal medicine and fertility." },
+  { id:6, name:"Dr. Arun Kumar",    spec:"Pediatrician",  exp:8,  fee:550,  rating:4.9, rev:445, ini:"AK", col:"g", slots:["10:00","11:00","13:00","14:00","15:00","16:00"],  about:"Dedicated to child health, neonatal care, and adolescent medicine." },
+];
+
+let apts = [
+  { id:1, doc:DOCTORS[0], patient:"Rekha Iyer",  date:"2026-06-20", time:"10:00", status:"Confirmed", reason:"Chest pain follow-up" },
+  { id:2, doc:DOCTORS[1], patient:"Suresh Babu", date:"2026-06-21", time:"14:00", status:"Pending",   reason:"Headache & dizziness" },
+  { id:3, doc:DOCTORS[2], patient:"Rekha Iyer",  date:"2026-05-30", time:"09:00", status:"Completed", reason:"Skin allergy check" },
+];
+
+let currentUser = null;
+let bkState = { doc:null, date:'', time:'' };
+let calDate  = new Date(2026, 5, 1); // June 2026
+
+// ══════════════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════════════
+function go(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  if (!pg) return;
+  pg.classList.add('active');
+  window.scrollTo(0, 0);
+  // close mobile menu
+  document.getElementById('nav-links').classList.remove('open');
+  document.getElementById('hbg').classList.remove('open');
+  // highlight nav
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.p === name));
+  // page init
+  if (name === 'landing')       initLanding();
+  if (name === 'doctors')       initDoctors();
+  if (name === 'book')          initBook();
+  if (name === 'patient-dash')  initPatientDash();
+  if (name === 'doctor-dash')   initDoctorDash();
+  if (name === 'admin-dash')    initAdminDash();
+}
+
+// ══════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════
+function demoLogin(role) {
+  const map = {
+    patient: { name:'Jane Smith',        email:'jane@medibook.in',   role:'patient' },
+    doctor:  { name:'Dr.Akash k', email:'ananya@medibook.in', role:'doctor'  },
+    admin:   { name:'Admin User',        email:'admin@medibook.in',  role:'admin'   },
+  };
+  doAuth(map[role]);
+  go(role === 'doctor' ? 'doctor-dash' : role === 'admin' ? 'admin-dash' : 'patient-dash');
+}
+
+function doLogin() {
+  const email = v('lg-email'), pwd = v('lg-pwd');
+  if (!email) return toast('Please enter your email.', 'err');
+  if (!pwd)   return toast('Please enter your password.', 'err');
+  doAuth({ name: fmtName(email), email, role:'patient' });
+  go('patient-dash');
+}
+
+function doRegister() {
+  const fn = v('rg-fn'), ln = v('rg-ln'), email = v('rg-email');
+  const pwd = v('rg-pwd'), pwd2 = v('rg-pwd2');
+  const role = v('reg-role');
+  if (!fn || !ln || !email) return toast('Please fill all required fields.', 'err');
+  if (pwd && pwd2 && pwd !== pwd2) return toast('Passwords do not match.', 'err');
+  if (!document.getElementById('terms-cb').checked) return toast('Please accept the Terms of Service.', 'err');
+  const name = role === 'doctor' ? 'Dr. ' + fn + ' ' + ln : fn + ' ' + ln;
+  doAuth({ name, email, role });
+  go(role === 'doctor' ? 'doctor-dash' : 'patient-dash');
+  toast('Account created! Welcome to MediBook 🎉', 'ok');
+}
+
+function doAuth(user) {
+  currentUser = user;
+  const ini = initials(user.name);
+  set('nav-av', ini);
+  set('nav-nm', user.name.split(' ')[0]);
+  document.getElementById('nav-guest').style.display = 'none';
+  document.getElementById('nav-user').style.display  = 'flex';
+  toast('Welcome, ' + user.name.split(' ')[0] + '!', 'ok');
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('nav-guest').style.display = 'flex';
+  document.getElementById('nav-user').style.display  = 'none';
+  go('landing');
+  toast('Signed out.', 'info');
+}
+
+function goDash() {
+  if (!currentUser) return go('login');
+  const m = { doctor:'doctor-dash', admin:'admin-dash', patient:'patient-dash' };
+  go(m[currentUser.role] || 'patient-dash');
+}
+
+function setRole(role) {
+  document.getElementById('reg-role').value = role;
+  document.getElementById('doc-fields').style.display = role === 'doctor' ? 'block' : 'none';
+  document.getElementById('rb-patient').className = role === 'patient' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  document.getElementById('rb-doctor').className  = role === 'doctor'  ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+}
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toasts');
+  const el = document.createElement('div');
+  const icon = type === 'ok' ? '✓' : type === 'err' ? '✗' : 'ℹ';
+  el.className = `toast toast-${type === 'ok' ? 'ok' : type === 'err' ? 'err' : 'info'}`;
+  el.innerHTML = `<span>${icon}</span><span style="flex:1">${msg}</span><span class="toast-x" onclick="this.parentElement.remove()">✕</span>`;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3800);
+}
+
+// ══════════════════════════════════════════════════
+// RIPPLE
+// ══════════════════════════════════════════════════
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn');
+  if (!btn) return;
+  const r = document.createElement('span');
+  const rect = btn.getBoundingClientRect();
+  const sz = Math.max(rect.width, rect.height);
+  r.className = 'ripple';
+  r.style.cssText = `width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px`;
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 650);
+});
+
+// ══════════════════════════════════════════════════
+// NAVBAR
+// ══════════════════════════════════════════════════
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+function toggleMenu() {
+  document.getElementById('nav-links').classList.toggle('open');
+  document.getElementById('hbg').classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════
+function openModal(title, html) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal').style.display = 'flex';
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal'))
+    document.getElementById('modal').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════
+// LANDING
+// ══════════════════════════════════════════════════
+function initLanding() {
+  // Top 3 doctors on landing
+  const grid = document.getElementById('landing-docs');
+  if (!grid || grid._loaded) return;
+  grid._loaded = true;
+  grid.innerHTML = '';
+  DOCTORS.slice(0, 3).forEach(d => grid.appendChild(buildDocCard(d)));
+
+  // FAQ
+  const faqs = [
+    { q:'How do I book an appointment?', a:'Search for a doctor by specialty or name, select an available date and time slot, fill in your details, and confirm. You\'ll receive an instant confirmation.' },
+    { q:'Can I reschedule or cancel?', a:'Yes! You can cancel from your patient dashboard up to 2 hours before the appointment at no extra charge.' },
+    { q:'Are video consultations available?', a:'Yes. Most doctors offer both in-person and video consultations. Choose your mode during booking.' },
+    { q:'How are doctors verified?', a:'Every doctor undergoes credential verification including license validation, degree check, and background screening before being listed.' },
+    { q:'Is my health data secure?', a:'All data is end-to-end encrypted and stored on HIPAA-compliant servers. We never share your information without explicit consent.' },
+  ];
+  const faqEl = document.getElementById('faq-list');
+  if (faqEl && !faqEl._loaded) {
+    faqEl._loaded = true;
+    faqEl.innerHTML = '';
+    faqs.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'faq-item';
+      item.innerHTML = `<div class="faq-q" onclick="this.parentElement.classList.toggle('open')">${f.q}<span class="faq-arrow">▼</span></div><div class="faq-a">${f.a}</div>`;
+      faqEl.appendChild(item);
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════
+// DOCTORS PAGE
+// ══════════════════════════════════════════════════
+const colMap = {
+  t:{ bg:'var(--t50)',  text:'var(--t800)',  badge:'badge-t'    },
+  b:{ bg:'var(--b50)',  text:'var(--b800)',  badge:'badge-b'    },
+  c:{ bg:'var(--c50)',  text:'var(--c600)',  badge:'badge-c'    },
+  a:{ bg:'var(--a50)',  text:'var(--a600)',  badge:'badge-a'    },
+  p:{ bg:'var(--p50)', text:'var(--p800)',  badge:'badge-p'    },
+  g:{ bg:'var(--g50)',  text:'var(--g800)',  badge:'badge-g'    },
+};
+
+function buildDocCard(d) {
+  const col = colMap[d.col] || colMap.t;
+  const card = document.createElement('div');
+  card.className = 'doc-card';
+  card.innerHTML = `
+    <div class="doc-img" style="background:${col.bg};color:${col.text}">${d.ini}</div>
+    <div class="doc-body">
+      <div class="doc-name">${d.name}</div>
+      <div class="doc-spec">${d.spec}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+        <span class="badge ${col.badge}">${d.exp} yrs</span>
+        <span class="badge badge-a">⭐ ${d.rating}</span>
+        <span class="badge badge-gray">${d.rev} reviews</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700;font-size:15px;color:var(--t400)">₹${d.fee}</span>
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();quickBook(${d.id})">Book</button>
+      </div>
+    </div>`;
+  card.onclick = () => openDocModal(d);
+  return card;
+}
+
+function initDoctors() {
+  renderDocs(DOCTORS);
+}
+
+function renderDocs(list) {
+  const grid = document.getElementById('docs-grid');
+  const empty = document.getElementById('docs-empty');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!list.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  list.forEach(d => grid.appendChild(buildDocCard(d)));
+}
+
+function filterDocs() {
+  const q    = (document.getElementById('doc-q').value || '').toLowerCase();
+  const spec = document.getElementById('doc-spec').value;
+  const sort = document.getElementById('doc-sort').value;
+  let list = DOCTORS.filter(d => {
+    const mq = !q || d.name.toLowerCase().includes(q) || d.spec.toLowerCase().includes(q);
+    const ms = !spec || d.spec === spec;
+    return mq && ms;
+  });
+  if (sort === 'rating')  list.sort((a,b) => b.rating - a.rating);
+  if (sort === 'fee-lo')  list.sort((a,b) => a.fee - b.fee);
+  if (sort === 'fee-hi')  list.sort((a,b) => b.fee - a.fee);
+  if (sort === 'exp')     list.sort((a,b) => b.exp - a.exp);
+  renderDocs(list);
+}
+
+function openDocModal(d) {
+  const col = colMap[d.col] || colMap.t;
+  openModal(d.name, `
+    <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem">
+      <div style="width:72px;height:72px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:${col.text};flex-shrink:0">${d.ini}</div>
+      <div><h3 style="font-size:18px;margin-bottom:4px">${d.name}</h3><span class="badge ${col.badge}">${d.spec}</span><div style="display:flex;gap:8px;margin-top:6px"><span class="badge badge-a">⭐ ${d.rating} (${d.rev})</span><span class="badge badge-gray">${d.exp} yrs exp</span></div></div>
+    </div>
+    <p style="font-size:13px;color:var(--gray400);line-height:1.8;margin-bottom:1rem">${d.about}</p>
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between;margin:1rem 0;font-size:13px"><span style="color:var(--gray400)">Consultation Fee</span><span style="font-weight:700;color:var(--t600);font-size:16px">₹${d.fee}</span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--gray400);margin-bottom:8px;text-transform:uppercase">Available Slots</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.5rem">${d.slots.map(s=>`<span style="padding:5px 10px;border-radius:6px;background:var(--t50);color:var(--t800);font-size:11px;font-weight:500">${s}</span>`).join('')}</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="closeModal();quickBook(${d.id})">Book Appointment</button>`);
+}
+
+function quickBook(id) {
+  go('book');
+  setTimeout(() => selectBkDoc(id), 80);
+}
+
+// ══════════════════════════════════════════════════
+// BOOKING
+// ══════════════════════════════════════════════════
+function initBook() {
+  const grid = document.getElementById('bk-docs');
+  if (!grid) return;
+  grid.innerHTML = '';
+  DOCTORS.forEach(d => {
+    const col = colMap[d.col] || colMap.t;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'bkd-' + d.id;
+    card.style.cssText = 'cursor:pointer;padding:.85rem;transition:all .18s';
+    card.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="width:40px;height:40px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:${col.text};flex-shrink:0">${d.ini}</div>
+        <div><div style="font-weight:600;font-size:13px">${d.name}</div><div style="font-size:11px;color:var(--t600)">${d.spec}</div><div style="font-size:11px;color:var(--gray400)">₹${d.fee} · ⭐${d.rating}</div></div>
+      </div>`;
+    card.onclick = () => selectBkDoc(d.id);
+    grid.appendChild(card);
+  });
+  // Date default
+  const dateEl = document.getElementById('bk-date');
+  if (dateEl) {
+    const today = new Date().toISOString().split('T')[0];
+    dateEl.min   = today;
+    if (!dateEl.value) dateEl.value = today;
+    bkState.date = dateEl.value;
+  }
+  bkState = { doc: bkState.doc || null, date: bkState.date || new Date().toISOString().split('T')[0], time: bkState.time || '' };
+  updateSummary();
+}
+
+function filterBookDocs() {
+  const q    = (document.getElementById('bk-q').value || '').toLowerCase();
+  const spec = document.getElementById('bk-spec').value;
+  document.querySelectorAll('#bk-docs .card').forEach(card => {
+    const txt = card.textContent.toLowerCase();
+    const ms = !spec || txt.includes(spec.toLowerCase());
+    const mq = !q   || txt.includes(q);
+    card.style.display = (ms && mq) ? '' : 'none';
+  });
+}
+
+function selectBkDoc(id) {
+  const d = DOCTORS.find(x => x.id === id);
+  if (!d) return;
+  bkState.doc  = d;
+  bkState.time = '';
+  // Highlight selected doc card
+  document.querySelectorAll('#bk-docs .card').forEach(c => {
+    c.style.borderColor = '';
+    c.style.background  = '';
+  });
+  const sel = document.getElementById('bkd-' + id);
+  if (sel) { sel.style.borderColor = 'var(--t400)'; sel.style.background = 'var(--t50)'; }
+  // Render slots
+  const sg = document.getElementById('slot-grid');
+  const hint = document.getElementById('slot-hint');
+  sg.innerHTML = '';
+  hint.textContent = 'Select a time for ' + d.name;
+  d.slots.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'slot';
+    btn.textContent = s;
+    btn.onclick = () => {
+      document.querySelectorAll('.slot').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      bkState.time = s;
+      updateSummary();
+    };
+    sg.appendChild(btn);
+  });
+  updateSummary();
+}
+
+function updateSummary() {
+  const d = bkState.doc;
+  const box = document.getElementById('sum-doc-box');
+  if (d) {
+    box.style.display = 'block';
+    set('sum-doc-name', d.name);
+    set('sum-doc-spec', d.spec);
+    set('sum-fee', '₹' + d.fee);
+  } else {
+    box.style.display = 'none';
+    set('sum-fee', '₹0');
+  }
+  const dateVal = document.getElementById('bk-date')?.value;
+  set('sum-date', dateVal ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : 'Not selected');
+  set('sum-time', bkState.time || 'Not selected');
+  set('sum-patient', v('bk-name') || 'Not entered');
+}
+
+function confirmBooking() {
+  if (!currentUser) { toast('Please sign in to book.', 'err'); return go('login'); }
+  if (!bkState.doc)  return toast('Please select a doctor.', 'err');
+  if (!bkState.time) return toast('Please select a time slot.', 'err');
+  const name   = v('bk-name')   || currentUser.name;
+  const reason = v('bk-reason') || 'General consultation';
+  apts.push({ id: Date.now(), doc: bkState.doc, patient: name, date: bkState.date, time: bkState.time, status:'Pending', reason });
+  toast('Appointment booked! 🎉', 'ok');
+  bkState = { doc: null, date: new Date().toISOString().split('T')[0], time: '' };
+  setTimeout(() => go('patient-dash'), 1000);
+}
+
+// ══════════════════════════════════════════════════
+// TAB SWITCHER
+// ══════════════════════════════════════════════════
+function switchTab(el, prefix, tab) {
+  // Deactivate all sidebar items
+  el.closest('.sidebar').querySelectorAll('.si').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  // Hide all tabs for this prefix
+  document.querySelectorAll('.' + prefix + '-tab').forEach(t => t.style.display = 'none');
+  const panel = document.getElementById(prefix + '-tab-' + tab);
+  if (panel) panel.style.display = 'block';
+  // Trigger extra init for certain tabs
+  if (prefix === 'd' && tab === 'calendar')     renderCalendar();
+  if (prefix === 'd' && tab === 'analytics')    renderDocAnalytics();
+  if (prefix === 'd' && tab === 'availability') renderAvailability();
+  if (prefix === 'a' && tab === 'analytics')    renderAdminAnalytics();
+}
+
+function switchTabById(prefix, tab) {
+  const sidebarItems = document.querySelectorAll('#page-' + (prefix==='p'?'patient':'doctor') + '-dash .si');
+  const tabMap = {p:['overview','appointments','book','profile','records','notifications'], d:['overview','appointments','calendar','analytics','profile','availability']};
+  const idx = tabMap[prefix]?.indexOf(tab);
+  if (idx >= 0 && sidebarItems[idx+1]) switchTab(sidebarItems[idx+1], prefix, tab);
+}
+
+// ══════════════════════════════════════════════════
+// PATIENT DASHBOARD
+// ══════════════════════════════════════════════════
+function initPatientDash() {
+  if (!currentUser) return go('login');
+  const ini = initials(currentUser.name);
+  set('p-av',   ini);
+  set('p-name', currentUser.name);
+  set('p-prof-av',   ini);
+  set('p-prof-name', currentUser.name);
+  // greeting
+  const hr = new Date().getHours();
+  const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  set('p-greet', greet + ', ' + currentUser.name.split(' ')[0] + '! 👋');
+  // prefill profile
+  const parts = currentUser.name.split(' ');
+  const pfFn = document.getElementById('pf-fn');
+  const pfLn = document.getElementById('pf-ln');
+  if (pfFn) pfFn.value = parts[0] || '';
+  if (pfLn) pfLn.value = parts.slice(1).join(' ') || '';
+  const pfEmail = document.getElementById('pf-email');
+  if (pfEmail) pfEmail.value = currentUser.email || '';
+  // Stats
+  set('p-s-total',  apts.length);
+  set('p-s-up',     apts.filter(a => ['Pending','Confirmed'].includes(a.status)).length);
+  set('p-s-done',   apts.filter(a => a.status === 'Completed').length);
+  set('p-s-cancel', apts.filter(a => a.status === 'Cancelled').length);
+  // Upcoming list
+  const upcoming = apts.filter(a => ['Pending','Confirmed'].includes(a.status)).slice(0, 3);
+  const ul = document.getElementById('p-upcoming');
+  if (ul) ul.innerHTML = upcoming.length
+    ? upcoming.map(aptMiniCard).join('')
+    : '<p style="color:var(--gray400);font-size:13px;text-align:center;padding:1rem">No upcoming appointments. <span style="color:var(--t400);cursor:pointer" onclick="go(\'book\')">Book one →</span></p>';
+  // Table
+  renderAptTable('p-apt-tbody', apts, 'patient');
+}
+
+function aptMiniCard(a) {
+  return `<div style="display:flex;gap:10px;align-items:center;padding:10px;background:var(--gray50);border-radius:var(--r-md);margin-bottom:8px">
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--t100);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--t800);flex-shrink:0">${a.doc.ini}</div>
+    <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${a.doc.name}</div><div style="font-size:11px;color:var(--gray400)">${a.date} · ${a.time}</div></div>
+    <span class="badge s-${a.status}">${a.status}</span>
+  </div>`;
+}
+
+function renderAptTable(tbodyId, list, view) {
+  const tb = document.getElementById(tbodyId);
+  if (!tb) return;
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray400);padding:2rem">No appointments found.</td></tr>'; return; }
+  tb.innerHTML = list.map(a => `<tr>
+    <td data-l="${view==='patient'?'Doctor':'Patient'}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--t100);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--t800)">${view==='patient'?a.doc.ini:a.patient.slice(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:500;font-size:13px">${view==='patient'?a.doc.name:a.patient}</div><div style="font-size:11px;color:var(--gray400)">${view==='patient'?a.doc.spec:''}</div></div>
+      </div>
+    </td>
+    <td data-l="Date"><div style="font-size:13px">${a.date}</div><div style="font-size:11px;color:var(--gray400)">${a.time}</div></td>
+    <td data-l="Reason" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.reason}</td>
+    <td data-l="Status"><span class="badge s-${a.status}">${a.status}</span></td>
+    <td data-l="Actions" style="white-space:nowrap">
+      ${a.status==='Pending' && view==='doctor' ? `<button class="btn btn-sm btn-primary" onclick="setAptStatus(${a.id},'Confirmed')" style="margin-right:4px">Accept</button>` : ''}
+      ${['Pending','Confirmed'].includes(a.status) ? `<button class="btn btn-sm btn-danger" onclick="setAptStatus(${a.id},'Cancelled')">Cancel</button>` : ''}
+      ${a.status==='Confirmed' && view==='doctor' ? `<button class="btn btn-sm btn-ghost" onclick="setAptStatus(${a.id},'Completed')" style="margin-left:4px">Complete</button>` : ''}
+      ${['Completed','Cancelled'].includes(a.status) && view!=='doctor' ? '<span style="color:var(--gray200);font-size:12px">—</span>' : ''}
+    </td>
+  </tr>`).join('');
+}
+
+function setAptStatus(id, status) {
+  const a = apts.find(x => x.id === id);
+  if (!a) return;
+  a.status = status;
+  toast('Appointment ' + status.toLowerCase() + '.', status === 'Cancelled' ? 'err' : 'ok');
+  initPatientDash();
+  if (document.getElementById('page-doctor-dash').classList.contains('active')) initDoctorDash();
+  if (document.getElementById('page-admin-dash').classList.contains('active'))  initAdminDash();
+}
+
+function filterApts(status, btn) {
+  document.querySelectorAll('[onclick^="filterApts"]').forEach(b => b.className = 'btn btn-sm btn-ghost');
+  btn.className = 'btn btn-sm btn-primary';
+  renderAptTable('p-apt-tbody', status === 'All' ? apts : apts.filter(a => a.status === status), 'patient');
+}
+
+function saveProfile() {
+  const fn = v('pf-fn'), ln = v('pf-ln');
+  if (currentUser) currentUser.name = (fn + ' ' + ln).trim() || currentUser.name;
+  toast('Profile saved!', 'ok');
+  initPatientDash();
+}
+
+// ══════════════════════════════════════════════════
+// DOCTOR DASHBOARD
+// ══════════════════════════════════════════════════
+function initDoctorDash() {
+  if (!currentUser) return go('login');
+  const ini = initials(currentUser.name);
+  set('d-av',         ini);
+  set('d-name',       currentUser.name);
+  set('d-prof-av',    ini);
+  set('d-prof-name',  currentUser.name);
+  // stats
+  set('d-s-total',     apts.length);
+  set('d-s-pending',   apts.filter(a => a.status === 'Pending').length);
+  set('d-s-confirmed', apts.filter(a => a.status === 'Confirmed').length);
+  set('d-s-done',      apts.filter(a => a.status === 'Completed').length);
+  const pendingList = apts.filter(a => a.status === 'Pending');
+  const pb = document.getElementById('d-pending-badge');
+  if (pb) pb.textContent = pendingList.length + ' pending';
+  const pl = document.getElementById('d-pending-list');
+  if (pl) pl.innerHTML = pendingList.length
+    ? pendingList.map(a => `
+      <div style="display:flex;gap:10px;align-items:center;padding:10px;background:var(--a50);border-radius:var(--r-md);margin-bottom:8px;border:.5px solid var(--a100)">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--a100);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--a600);flex-shrink:0">${a.patient.slice(0,2).toUpperCase()}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:13px">${a.patient}</div><div style="font-size:11px;color:var(--gray400)">${a.date} · ${a.time} · ${a.reason}</div></div>
+        <button class="btn btn-sm btn-primary" onclick="setAptStatus(${a.id},'Confirmed')">Accept</button>
+        <button class="btn btn-sm btn-danger"  onclick="setAptStatus(${a.id},'Cancelled')">Reject</button>
+      </div>`).join('')
+    : '<p style="color:var(--gray400);font-size:13px;text-align:center;padding:1rem">No pending appointments.</p>';
+  // bar chart
+  buildBarChart('d-weekly-chart', [8,12,9,15,11,7,4], 'var(--t400)', 140);
+  // Appointments table
+  renderAptTable('d-apt-tbody', apts, 'doctor');
+}
+
+// ══════════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════════
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  set('cal-label', new Date(y, m, 1).toLocaleDateString('en-IN', {month:'long', year:'numeric'}));
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const aptDates = new Set(apts.map(a => a.date));
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let html = dayNames.map(d => `<div class="cal-dn">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-d dim"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cls = [ds===todayStr?'today':'', aptDates.has(ds)?'has-apt':''].filter(Boolean).join(' ');
+    html += `<div class="cal-d ${cls}" onclick="showCalDay('${ds}')">${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function changeMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
+
+function showCalDay(date) {
+  const label = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long'});
+  set('cal-day-title', 'Appointments on ' + label);
+  const dayApts = apts.filter(a => a.date === date);
+  const el = document.getElementById('cal-day-list');
+  if (!el) return;
+  el.innerHTML = dayApts.length
+    ? dayApts.map(a => `<div style="padding:10px;background:var(--gray50);border-radius:var(--r-md);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:500;font-size:13px">${a.patient}</div><div style="font-size:11px;color:var(--gray400)">${a.time} · ${a.reason}</div></div><span class="badge s-${a.status}">${a.status}</span></div>`).join('')
+    : '<p style="color:var(--gray400);font-size:13px">No appointments on this date.</p>';
+}
+
+// ══════════════════════════════════════════════════
+// DOCTOR ANALYTICS
+// ══════════════════════════════════════════════════
+function renderDocAnalytics() {
+  // Donut
+  const statuses = ['Confirmed','Pending','Completed','Cancelled'];
+  const colors   = ['var(--t400)','var(--a400)','var(--g400)','var(--r400)'];
+  const counts   = statuses.map(s => apts.filter(a => a.status === s).length);
+  const total    = counts.reduce((a,b) => a+b, 0) || 1;
+  const svg = document.getElementById('donut-svg');
+  if (svg) {
+    let angle = 0, paths = '';
+    counts.forEach((c, i) => {
+      const pct = c / total;
+      const end = angle + pct * 2 * Math.PI;
+      const x1 = 60 + 45 * Math.sin(angle), y1 = 60 - 45 * Math.cos(angle);
+      const x2 = 60 + 45 * Math.sin(end),   y2 = 60 - 45 * Math.cos(end);
+      if (pct > 0.001) paths += `<path d="M60,60 L${x1},${y1} A45,45 0 ${pct>.5?1:0},1 ${x2},${y2} Z" fill="${colors[i]}" opacity=".85"/>`;
+      angle = end;
+    });
+    svg.innerHTML = paths + `<circle cx="60" cy="60" r="28" fill="white"/><text x="60" y="65" text-anchor="middle" font-size="14" font-weight="600" fill="#272724">${total}</text>`;
+  }
+  const legend = document.getElementById('donut-legend');
+  if (legend) legend.innerHTML = statuses.map((s,i) => `<div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${colors[i]};display:inline-block"></span>${s}: ${counts[i]}</div>`).join('');
+  // Satisfaction bars
+  const sb = document.getElementById('sat-bars');
+  if (sb) sb.innerHTML = [['Excellent',78],['Good',14],['Average',6],['Poor',2]].map(([l,v]) =>
+    `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${l}</span><span style="color:var(--t600);font-weight:600">${v}%</span></div><div class="prog-track"><div class="prog-fill" style="width:${v}%"></div></div></div>`).join('');
+  // Monthly
+  buildBarChart('d-monthly-chart', [42,55,38,67,49,72], 'var(--b400)', 160);
+}
+
+function renderAvailability() {
+  const el = document.getElementById('avail-list');
+  if (!el || el._loaded) return;
+  el._loaded = true;
+  const days  = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const slots = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
+  const def   = ['09:00','10:00','11:00','14:00','15:00'];
+  el.innerHTML = days.map(day => `
+    <div>
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">${day}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${slots.map(s => `<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" ${def.includes(s)?'checked':''}> ${s}</label>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ══════════════════════════════════════════════════
+function initAdminDash() {
+  if (!currentUser) return go('login');
+  const total   = apts.length;
+  const pending = apts.filter(a => a.status === 'Pending').length;
+  const rev     = apts.filter(a => a.status === 'Completed').reduce((s,a) => s + a.doc.fee, 0);
+  set('a-s-total',   total);
+  set('a-s-pending', pending);
+  set('a-s-rev',     '₹' + rev.toLocaleString('en-IN'));
+  set('a-rev-big',   '₹' + rev.toLocaleString('en-IN'));
+  // Status bars
+  const sb = document.getElementById('a-status-bars');
+  if (sb) {
+    const sl = [['Confirmed','t'],['Pending','a'],['Completed','g'],['Cancelled','r']];
+    sb.innerHTML = sl.map(([s,c]) => {
+      const cnt = apts.filter(a => a.status === s).length;
+      const pct = total ? Math.round(cnt/total*100) : 0;
+      return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${s}</span><span style="font-weight:600">${cnt} (${pct}%)</span></div><div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:var(--${c}400)"></div></div></div>`;
+    }).join('');
+  }
+  // Top doctors
+  const td = document.getElementById('a-top-docs');
+  if (td) {
+    const counts = {};
+    apts.forEach(a => counts[a.doc.name] = (counts[a.doc.name]||0)+1);
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const mx = sorted[0]?.[1] || 1;
+    td.innerHTML = sorted.map(([name,cnt]) => `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:500">${name}</span><span>${cnt}</span></div><div class="prog-track"><div class="prog-fill" style="width:${cnt/mx*100}%"></div></div></div>`).join('');
+  }
+  // Doctors table
+  const db = document.getElementById('a-doc-tbody');
+  if (db) db.innerHTML = DOCTORS.map(d => `<tr>
+    <td data-l="Name"><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:var(--t100);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--t800)">${d.ini}</div>${d.name}</div></td>
+    <td data-l="Spec">${d.spec}</td><td data-l="Exp">${d.exp} yrs</td><td data-l="Fee">₹${d.fee}</td>
+    <td data-l="Rating">⭐ ${d.rating}</td><td data-l="Status"><span class="badge badge-t">✓ Verified</span></td>
+    <td><button class="btn btn-sm btn-ghost" onclick="openDocModal(DOCTORS.find(x=>x.id===${d.id}))">View</button></td>
+  </tr>`).join('');
+  // All appointments table
+  const ab = document.getElementById('a-apt-tbody');
+  if (ab) ab.innerHTML = apts.map(a => `<tr>
+    <td data-l="Patient">${a.patient}</td>
+    <td data-l="Doctor">${a.doc.name}</td>
+    <td data-l="Date">${a.date} · ${a.time}</td>
+    <td data-l="Reason">${a.reason}</td>
+    <td data-l="Status"><span class="badge s-${a.status}">${a.status}</span></td>
+    <td><button class="btn btn-sm btn-ghost" onclick="toast('Viewing appointment #${a.id}','info')">View</button></td>
+  </tr>`).join('');
+}
+
+function renderAdminAnalytics() {
+  buildBarChart('a-weekly-chart', [5,9,7,11,8,4,2], 'var(--p400)', 120);
+  const specBars = document.getElementById('a-spec-bars');
+  if (specBars) {
+    const data = [['Cardiology',28],['Neurology',22],['Dermatology',18],['Orthopedic',16],['Gynecology',10],['Pediatrics',6]];
+    specBars.innerHTML = data.map(([s,v]) => `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${s}</span><span style="font-weight:600">${v}%</span></div><div class="prog-track"><div class="prog-fill" style="width:${v}%;background:var(--b400)"></div></div></div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// CONTACT
+// ══════════════════════════════════════════════════
+function sendContact() {
+  const name = v('ct-name'), msg = v('ct-msg');
+  if (!name || !msg) return toast('Please fill in your name and message.', 'err');
+  toast("Message sent! We'll respond within 24 hours.", 'ok');
+  ['ct-name','ct-email','ct-msg'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+}
+
+// ══════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════
+function buildBarChart(id, data, color, height) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const mx = Math.max(...data) || 1;
+  el.innerHTML = data.map(v => `<div class="bar-wrap"><div class="bar-v">${v}</div><div class="bar" style="width:30px;height:${(v/mx)*(height-20)}px;background:${color};opacity:${0.45+0.55*(v/mx)}"></div></div>`).join('');
+}
+
+function v(id)   { return (document.getElementById(id)?.value || '').trim(); }
+function set(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+function initials(name) { return name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(); }
+function fmtName(email) { return email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g, c=>c.toUpperCase()); }
+
+// ══════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════
+initLanding();
+</script>
+</body>
+</html>
